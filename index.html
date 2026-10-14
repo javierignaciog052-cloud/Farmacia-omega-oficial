@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Farmacia Omega | Tienda Online & Recetas</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            logo: ['"Montserrat"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              dark: '#232B35',       // Gris grafito de la fachada de Farmacia Omega
+              darker: '#181E25',     // Gris profundo para topbar
+              charcoal: '#4A4F55',   // Gris del texto del logo
+              cyan: '#00A8CC',       // Cian turquesa exacto del logo
+              cyanHover: '#008FAE',
+              cyanLight: '#E6F7FB',
+              silver: '#D6D8DC',     // Gris claro de la cruz del logo
+            }
+          },
+          boxShadow: {
+            'card': '0 4px 20px -2px rgba(24, 30, 37, 0.06)',
+            'floating': '0 10px 25px -4px rgba(0, 168, 204, 0.35)',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+<body class="bg-[#F4F7F9] text-slate-800 font-sans antialiased min-h-screen flex flex-col pb-20 md:pb-0 selection:bg-brand-cyan selection:text-white">
+
+  <!-- ==========================================
+       BARRA SUPERIOR EXCLUSIVA DE MODO EDITOR
+       (Oculta para compradores normales)
+  =========================================== -->
+  <div id="adminBar" class="hidden bg-amber-400 text-slate-950 px-4 py-2.5 sticky top-0 z-50 shadow-md border-b border-amber-500">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="bg-slate-950 text-amber-400 text-[11px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5">
+          <i class="fa-solid fa-unlock-keyhole"></i> Modo Editor
+        </span>
+        <!-- Indicador de estado de la Nube -->
+        <span id="cloudStatusBadge" onclick="window.openSettingsModal()" class="cursor-pointer bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+          <i class="fa-solid fa-cloud-check"></i> Nube Conectada
+        </span>
+      </div>
+      
+      <div class="flex items-center gap-2 flex-wrap">
+        <button type="button" onclick="window.openProductModal()" class="bg-slate-950 hover:bg-slate-800 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-xs cursor-pointer">
+          <i class="fa-solid fa-plus text-brand-cyan"></i> Nuevo Producto
+        </button>
+        <button type="button" onclick="window.openSettingsModal()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-xs cursor-pointer">
+          <i class="fa-solid fa-gear"></i> Configurar Tienda
+        </button>
+        <button type="button" onclick="window.logoutAdmin()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer">
+          <i class="fa-solid fa-right-from-bracket"></i> Salir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       NOTIFICACIÓN FLOTANTE (TOAST)
+  =========================================== -->
+  <div id="toast" class="fixed top-5 right-5 z-[70] transform translate-y-[-200%] opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 bg-brand-dark text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700">
+    <div class="w-8 h-8 rounded-full bg-brand-cyan/20 text-brand-cyan flex items-center justify-center text-sm shrink-0">
+      <i class="fa-solid fa-check"></i>
+    </div>
+    <div>
+      <h5 class="text-xs font-bold" id="toastTitle">Listo</h5>
+      <p class="text-[11px] text-slate-300" id="toastMessage">Acción completada</p>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       1. TOPBAR INSTITUCIONAL
+  =========================================== -->
+  <aside class="bg-brand-darker text-slate-300 text-xs py-2 px-4 border-b border-slate-800/80">
+    <div class="max-w-7xl mx-auto flex justify-between items-center font-medium">
+      <div class="flex items-center gap-4 md:gap-6">
+        <span class="flex items-center gap-1.5">
+          <i class="fa-solid fa-location-dot text-brand-cyan"></i>
+          <span id="uiLocationText" class="text-[11px] md:text-xs">Añatuya, Santiago del Estero</span>
+        </span>
+        <span class="hidden md:flex items-center gap-1.5">
+          <i class="fa-solid fa-clock text-brand-cyan"></i>
+          <span id="uiHoursText">Lun a Sáb: 08:00 a 13:00 y 17:00 a 22:00 hs</span>
+        </span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="https://wa.me/5493517469636" target="_blank" class="hidden sm:flex items-center gap-1.5 text-emerald-400 hover:underline text-[11px]">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp: 351 746-9636
+        </a>
+        <button type="button" id="topAdminBtn" onclick="window.handleAdminTrigger()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded-lg border border-slate-700 hover:border-brand-cyan transition flex items-center gap-1.5 cursor-pointer" title="Acceso Editor">
+          <i class="fa-solid fa-lock text-brand-cyan text-[10px]"></i> <span>Modo Editor</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ==========================================
+       2. HEADER PRINCIPAL
+  =========================================== -->
+  <header class="bg-brand-dark text-white sticky top-0 z-40 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-3 md:py-3.5 flex items-center justify-between gap-3 md:gap-6">
+      
+      <!-- LOGO FARMACIA OMEGA -->
+      <a href="#catalogo" onclick="window.setCategory('todos', false); return false;" class="flex items-center gap-3 shrink-0 group focus:outline-none cursor-pointer">
+        <div class="w-10 h-10 md:w-12 md:h-12 relative flex items-center justify-center bg-white rounded-2xl p-1.5 shadow-sm group-hover:scale-105 transition">
+          <svg viewBox="0 0 120 120" class="w-full h-full">
+            <path d="M44 14 C44 6, 76 6, 76 14 L76 44 L106 44 C114 44, 114 76, 106 76 L60 76 C51 76, 44 69, 44 60 Z" fill="#D6D8DC" />
+            <path d="M14 44 L60 44 C69 44, 76 51, 76 60 L76 106 C76 114, 44 114, 44 106 L44 76 L14 76 C6 76, 6 44, 14 44 Z" fill="#00A8CC" />
+            <path d="M44 44 L60 44 C69 44, 76 51, 76 60 L76 76 L60 76 C51 76, 44 69, 44 60 Z" fill="#4A4F55" />
+          </svg>
+        </div>
+        <div class="flex flex-col font-logo">
+          <span class="text-[9px] md:text-[10px] tracking-[0.34em] text-slate-300 font-medium uppercase leading-none mb-0.5">FARMACIA</span>
+          <span class="text-xl md:text-2xl font-extrabold tracking-wider text-white leading-none">OMEGA</span>
+        </div>
+      </a>
+
+      <!-- BUSCADOR INTELIGENTE (PC) -->
+      <div class="flex-1 max-w-xl relative hidden md:block">
+        <input 
+          id="searchInputDesktop"
+          type="text" 
+          placeholder="Buscá por producto, marca, laboratorio o síntoma..." 
+          class="w-full bg-white text-slate-800 placeholder-slate-400 text-sm rounded-full pl-11 pr-10 py-2.5 outline-none focus:ring-2 focus:ring-brand-cyan shadow-inner transition"
+          oninput="window.handleSearch(this.value)"
+        />
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400 text-sm"></i>
+        <button type="button" id="clearSearchBtn" onclick="window.clearSearch()" class="hidden absolute right-3.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
+          <i class="fa-solid fa-circle-xmark"></i>
+        </button>
+      </div>
+
+      <!-- ACCIONES DE CABECERA -->
+      <div class="flex items-center gap-2.5">
+        <button 
+          type="button"
+          id="headerAddProductBtn"
+          onclick="window.openProductModal()"
+          class="hidden items-center gap-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold px-3.5 py-2.5 rounded-full transition shadow-sm cursor-pointer">
+          <i class="fa-solid fa-plus"></i>
+          <span class="hidden lg:inline">Cargar Producto</span>
+        </button>
+
+        <button 
+          type="button"
+          onclick="window.openRecipeModal()"
+          class="hidden sm:flex items-center gap-2 bg-brand-cyan hover:bg-brand-cyanHover text-white text-xs md:text-sm font-bold px-4 py-2.5 rounded-full transition shadow-md hover:shadow-cyan-500/25 active:scale-95 cursor-pointer">
+          <i class="fa-solid fa-file-prescription text-sm"></i>
+          <span>SUBÍ TU RECETA</span>
+        </button>
+
+        <button 
+          type="button"
+          onclick="window.toggleCart()"
+          aria-label="Abrir Carrito"
+          class="relative bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-3.5 py-2.5 rounded-full flex items-center gap-2 transition active:scale-95 cursor-pointer">
+          <i class="fa-solid fa-cart-shopping text-sm text-brand-cyan"></i>
+          <span class="text-xs font-bold hidden xl:inline">Carrito</span>
+          <span id="cartBadge" class="bg-brand-cyan text-white text-[11px] font-extrabold px-1.5 py-0.5 min-w-[20px] rounded-full flex items-center justify-center">
+            0
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- BUSCADOR MÓVIL -->
+    <div class="px-4 pb-3 md:hidden">
+      <div class="relative w-full">
+        <input 
+          id="searchInputMobile"
+          type="text" 
+          placeholder="Buscar medicamento, marca o dermo..." 
+          class="w-full bg-white text-slate-800 placeholder-slate-400 text-xs rounded-full pl-10 pr-9 py-2.5 outline-none focus:ring-2 focus:ring-brand-cyan shadow-inner"
+          oninput="window.handleSearch(this.value)"
+        />
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+      </div>
+    </div>
+
+    <!-- BARRA DE CATEGORÍAS (APARTADOS) -->
+    <nav class="bg-white border-b border-slate-200 text-slate-700 text-xs font-bold">
+      <div class="max-w-7xl mx-auto px-4 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-2.5">
+        <div class="flex items-center gap-1.5 md:gap-2">
+          <button type="button" onclick="window.setCategory('todos', true)" data-cat="todos" class="category-pill whitespace-nowrap px-4 py-1.5 rounded-full bg-brand-cyan text-white transition cursor-pointer shadow-xs">
+            Todos
+          </button>
+          <button type="button" onclick="window.setCategory('farmacia', true)" data-cat="farmacia" class="category-pill whitespace-nowrap px-4 py-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition cursor-pointer">
+            Farmacia
+          </button>
+          <button type="button" onclick="window.setCategory('
